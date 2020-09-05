@@ -1,5 +1,9 @@
 const { GraphQLServer } = require('graphql-yoga')
+const findLinkById = require('./helperMethods/findLinkById')
+const _ = require('lodash')
+const { PrismaClient } = require("@prisma/client")
 
+const prisma = new PrismaClient()
 
 let links = [{
   id: 'link-0',
@@ -16,12 +20,7 @@ const resolvers = {
     info: () => `This is the API of a Hackernews Clone`,
     feed: () => links,
     link: (parent, args) => {
-      let desiredLink
-      links.forEach(el => {
-        if(el.id === args.id) {
-          desiredLink = el
-        }
-      })
+      let desiredLink = findLinkById(args, links)
       return desiredLink
     }
   }, 
@@ -39,13 +38,38 @@ const resolvers = {
       }
       links.push(link)
       return link
+    },
+    updateLink: (parent, args) => {
+      let desiredLink = findLinkById(args, links)
+      const link = {
+        id: args.id,
+        description: args.description || desiredLink.description,
+        url: args.url || desiredLink.url
+      }
+      for(let i = 0; i < links.length; i ++) {
+        if(links[i].id === link.id ) {
+          links[i] = link
+        }
+      }
+      
+      return link
+    },
+    deleteLink: (parent, args) => {
+      let desiredIndex = _.findIndex(links, function(o) {
+        return o.id == args.id
+      })
+      links = _.without(links, links[desiredIndex])
+      return links
     }
   },
 }
 
 const server = new GraphQLServer({
   typeDefs: './src/schema.graphql',
-  resolvers
+  resolvers,
+  context: {
+    prisma
+  }
 })
 
 server.start(() => console.log(`Server is running on http://localhost:4000`))
