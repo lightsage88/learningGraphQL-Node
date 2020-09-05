@@ -1,7 +1,8 @@
 
 const findLinkById = (args, links) => {
+  let desiredLink
   links.forEach(el => {
-    if(el.id === args.id) {
+    if(el.id === Number(args.id)) {
       desiredLink = el
     }
   })
