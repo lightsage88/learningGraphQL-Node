@@ -1,12 +1,15 @@
-const { GraphQLServer } = require('graphql-yoga')
+const { GraphQLServer, PubSub } = require('graphql-yoga')
 const _ = require('lodash')
 const { PrismaClient } = require("@prisma/client")
 const Query = require('./resolvers/Query')
 const Mutation = require('./resolvers/Mutation')
 const User = require('./resolvers/User')
 const Link = require('./resolvers/Link')
+const Vote = require('./resolvers/Vote')
+const Subscription = require('./resolvers/Subscription')
 
 const prisma = new PrismaClient()
+const pubsub = new PubSub()
 
 //We are adding a new integer variable that serves as a rudiemtary way of
 //creating unique IDs for newly created 'Link' elements
@@ -15,7 +18,9 @@ const resolvers = {
   Query,
   Mutation,
   User,
-  Link
+  Link,
+  Vote,
+  Subscription
           //   Query: {
           //     info: () => `This is the API of a Hackernews Clone`,
           //     feed: async (parent, args, context, info) => {
@@ -79,7 +84,8 @@ const server = new GraphQLServer({
   context: request => {
     return {
       ...request,
-      prisma
+      prisma,
+      pubsub
     }
   }
 })
